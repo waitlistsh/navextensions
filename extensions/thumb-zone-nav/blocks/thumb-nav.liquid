@@ -4,7 +4,7 @@
 {% style %}
   :root {
     --thumb-bg-color: {{ block.settings.bg_color }};
-    --thumb-nav_opacity: {{ block.settings.bg_opacity | default: 90 | divided_by: 100.0 }};
+    --thumb-nav_opacity: {{ block.settings.nav_opacity | default: 90 | divided_by: 100.0 }};
     --thumb-text-active: {{ block.settings.color_active }};
     --thumb-text-inactive: {{ block.settings.color_active | color_modify: 'alpha', 0.5 }}; 
     --thumb-icon-size: {{ block.settings.icon_size }}px;
