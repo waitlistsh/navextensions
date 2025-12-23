@@ -113,30 +113,53 @@
 
 
 <script>
- document.addEventListener('shopify:block:change', (event) => {
-    const settings = event.detail; 
+  // 1. Theme Editor Integration (Fluid real-time updates)
+  document.addEventListener('shopify:block:change', (event) => {
+    const settings = event.detail;
     const root = document.documentElement;
+    const wrapper = document.querySelector('.thumb-wrapper');
 
+    // Nav Opacity Slider (Independent of icons)
+    if (settings.nav_opacity !== undefined) {
+      root.style.setProperty('--thumb-bg-opacity', settings.nav_opacity / 100.0);
+    }
 
+    // Background and Active Colors
+    if (settings.bg_color) root.style.setProperty('--thumb-bg-color', settings.bg_color);
+    if (settings.color_active) {
+      root.style.setProperty('--thumb-text-active', settings.color_active);
+      root.style.setProperty('--thumb-text-inactive', settings.color_active + '80'); // 50% opacity hex
+    }
 
+    // Sizing and Positions
+    if (settings.icon_size) root.style.setProperty('--thumb-icon-size', settings.icon_size + 'px');
+    if (settings.text_size) root.style.setProperty('--thumb-text-size', settings.text_size + 'px');
+    if (settings.spacing_bottom !== undefined) root.style.setProperty('--thumb-spacing-bottom', settings.spacing_bottom + 'px');
+    if (settings.menu_width) root.style.setProperty('--thumb-menu-width', settings.menu_width + '%');
+    
+    // Desktop Specifics
+    if (settings.desktop_width) root.style.setProperty('--thumb-desktop-max', settings.desktop_width + 'px');
+    if (settings.desktop_scale) root.style.setProperty('--thumb-scale', settings.desktop_scale);
 
-  // 1. Haptic Feedback (Coarse pointer = Touchscreen only)
+    // Theme Selection (Class swap)
+    if (settings.theme_selection && wrapper) {
+      wrapper.className = `thumb-wrapper theme-${settings.theme_selection}`;
+    }
+  });
+
+  // 2. Haptic Feedback
   function triggerHaptic() {
     if ("vibrate" in navigator && window.matchMedia("(pointer: coarse)").matches) {
       navigator.vibrate(12);
     }
   }
 
-
-
-
-  // 2. Real-time Cart Update Listener
-  // Listens for any 'change' in the document (like qty selectors) to update badge
+  // 3. Real-time Cart Update Listener
   document.addEventListener('change', function() {
     fetch(`${window.Shopify.routes.root}cart.js`)
       .then(response => response.json())
       .then(cart => {
-        const badges = document.querySelectorAll('[data-thumb-cart-count]');
+        const badges = document.querySelectorAll('.cart-badge');
         badges.forEach(badge => {
           badge.textContent = cart.item_count;
           badge.style.display = cart.item_count > 0 ? 'flex' : 'none';
@@ -145,37 +168,18 @@
       .catch(error => console.error('Thumb-Nav Cart Sync Error:', error));
   });
 
-
-
-
-  // 3. Universal Action Trigger (The Big Update)
+  // 4. Universal Action Trigger
   const triggerUniversalAction = (type) => {
     let selectors = [];
-    
-    // Custom user settings from Liquid schema (if provided)
     const customSearch = "{{ block.settings.custom_search_selector }}";
     const customMenu = "{{ block.settings.custom_menu_selector }}";
 
     if (type === 'search') {
-      selectors = [
-        customSearch, // User override first
-        '[data-action="toggle-search"]', // Horizon / Maestrooo
-        '.header__search-toggle',        // Horizon alternate
-        '.search-modal__trigger',        // Dawn / Shopify
-        '.header__icon--search',         // Prestige / Impact
-        '[href="/search"]'               // Generic fallback
-      ].filter(s => s); // Remove empty strings
+      selectors = [customSearch, '[data-action="toggle-search"]', '.header__search-toggle', '.search-modal__trigger', '.header__icon--search', '[href="/search"]'].filter(s => s);
     } else if (type === 'menu') {
-      selectors = [
-        customMenu,   // User override first
-        '[data-action="open-drawer"]',   // Horizon
-        '[aria-controls="mobile-menu"]', // Generic ARIA
-        '.header__icon--menu',           // Dawn
-        '.menu-drawer-container summary' // Shopify default
-      ].filter(s => s);
+      selectors = [customMenu, '[data-action="open-drawer"]', '[aria-controls="mobile-menu"]', '.header__icon--menu', '.menu-drawer-container summary'].filter(s => s);
     }
 
-    // Try to find and click the first valid theme toggle
     for (let selector of selectors) {
       const el = document.querySelector(selector);
       if (el && typeof el.click === 'function') {
@@ -184,88 +188,29 @@
       }
     }
 
-    // Fallback: If no drawer found, go to the actual page
     if (type === 'search') window.location.href = '/search';
     if (type === 'menu') window.location.href = '/collections/all';
   };
 
-  
-
-
-    // 4. Theme Editor Integration
-
-
-    
-    const wrapper = document.querySelector('.thumb-wrapper');
-// 1. Apply Opacity Slider (Independent of icons)
-  if (settings.nav_opacity !== undefined) {
-    root.style.setProperty('--thumb-bg-opacity', settings.nav_opacity / 100.0);
-  }
-
-  // 2. Apply Background Color
-  if (settings.bg_color) {
-    root.style.setProperty('--thumb-bg-color', settings.bg_color);
-  }
-
-  // 3. Apply Text/Icon Color (Fluidly update inactive state too)
-  if (settings.color_active) {
-    root.style.setProperty('--thumb-text-active', settings.color_active);
-    root.style.setProperty('--thumb-text-inactive', settings.color_active + '80');
-  }
-
-  // 4. Update Theme Selection Class (Updates all layout styles immediately)
-  if (settings.theme_selection) {
-    const wrapper = document.querySelector('.thumb-wrapper');
-    if (wrapper) {
-      wrapper.className = `thumb-wrapper theme-${settings.theme_selection}`;
-    }
-  }
-
-  // 5. Update Sizing
-  if (settings.icon_size) root.style.setProperty('--thumb-icon-size', settings.icon_size + 'px');
-  if (settings.text_size) root.style.setProperty('--thumb-text-size', settings.text_size + 'px');
-});
-
-// 5. Global Event Listener for Navigation
+  // 5. Global Event Listener for Navigation
   document.querySelectorAll('.thumb-link').forEach(link => {
     link.addEventListener('click', function(e) {
       const action = this.getAttribute('data-thumb-action');
-      
-      // If it's a special action keyword, stop the normal link behavior
       if (action) {
         e.preventDefault();
-        
         switch (action) {
           case 'search':
-          case 'menu':
-            triggerUniversalAction(action);
-            break;
-          case 'top':
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            break;
-          case 'back':
-            window.history.back();
-            break;
+          case 'menu': triggerUniversalAction(action); break;
+          case 'top': window.scrollTo({ top: 0, behavior: 'smooth' }); break;
+          case 'back': window.history.back(); break;
           case 'share':
-            if (navigator.share) {
-              navigator.share({ title: document.title, url: window.location.href });
-            }
+            if (navigator.share) navigator.share({ title: document.title, url: window.location.href });
             break;
         }
       }
-
-      // Always trigger haptic on click
       triggerHaptic();
     });
-
-
-
   });
-
-
-
-
-
 </script>
 
 
