@@ -4,7 +4,7 @@
 {% style %}
   :root {
     --thumb-bg-color: {{ block.settings.bg_color }};
-    --thumb-bg-opacity: {{ block.settings.bg_opacity | default: 90 | divided_by: 100.0 }};
+    --thumb-nav_opacity: {{ block.settings.bg_opacity | default: 90 | divided_by: 100.0 }};
     --thumb-text-active: {{ block.settings.color_active }};
     --thumb-text-inactive: {{ block.settings.color_active | color_modify: 'alpha', 0.5 }}; 
     --thumb-icon-size: {{ block.settings.icon_size }}px;
@@ -22,7 +22,7 @@
         --thumb-bg-color: #121212; 
         --thumb-text-active: #ffffff;
         --thumb-text-inactive: rgba(255, 255, 255, 0.5);
-        --thumb-bg-opacity: 0.95;
+        --thumb-nav_opacity: 0.95;
       }
       
       /* Specific override for the "Cutout" borders in Hot-Key and Badges */
@@ -121,7 +121,7 @@
 
     // Nav Opacity Slider (Independent of icons)
     if (settings.nav_opacity !== undefined) {
-      root.style.setProperty('--thumb-bg-opacity', settings.nav_opacity / 100.0);
+      root.style.setProperty('--thumb-nav_opacity', settings.nav_opacity / 100.0);
     }
 
     // Background and Active Colors
