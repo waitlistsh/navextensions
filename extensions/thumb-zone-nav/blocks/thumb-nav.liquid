@@ -117,12 +117,18 @@
     const settings = event.detail; 
     const root = document.documentElement;
 
+
+
+
   // 1. Haptic Feedback (Coarse pointer = Touchscreen only)
   function triggerHaptic() {
     if ("vibrate" in navigator && window.matchMedia("(pointer: coarse)").matches) {
       navigator.vibrate(12);
     }
   }
+
+
+
 
   // 2. Real-time Cart Update Listener
   // Listens for any 'change' in the document (like qty selectors) to update badge
@@ -138,6 +144,9 @@
       })
       .catch(error => console.error('Thumb-Nav Cart Sync Error:', error));
   });
+
+
+
 
   // 3. Universal Action Trigger (The Big Update)
   const triggerUniversalAction = (type) => {
@@ -188,28 +197,34 @@
 
     
     const wrapper = document.querySelector('.thumb-wrapper');
+// 1. Apply Opacity Slider (Independent of icons)
+  if (settings.nav_opacity !== undefined) {
+    root.style.setProperty('--thumb-bg-opacity', settings.nav_opacity / 100.0);
+  }
 
-    // Update CSS Variables dynamically
-   if (settings.bg_color) root.style.setProperty('--thumb-bg-color', settings.bg_color);
-    if (settings.color_active) {
-      root.style.setProperty('--thumb-text-active', settings.color_active);
-      // Logic for inactive color (matching your Liquid logic)
-      root.style.setProperty('--thumb-text-inactive', settings.color_active + '80'); // Adding '80' for 50% opacity hex
+  // 2. Apply Background Color
+  if (settings.bg_color) {
+    root.style.setProperty('--thumb-bg-color', settings.bg_color);
+  }
+
+  // 3. Apply Text/Icon Color (Fluidly update inactive state too)
+  if (settings.color_active) {
+    root.style.setProperty('--thumb-text-active', settings.color_active);
+    root.style.setProperty('--thumb-text-inactive', settings.color_active + '80');
+  }
+
+  // 4. Update Theme Selection Class (Updates all layout styles immediately)
+  if (settings.theme_selection) {
+    const wrapper = document.querySelector('.thumb-wrapper');
+    if (wrapper) {
+      wrapper.className = `thumb-wrapper theme-${settings.theme_selection}`;
     }
-    if (settings.icon_size) root.style.setProperty('--thumb-icon-size', settings.icon_size + 'px');
-    if (settings.text_size) root.style.setProperty('--thumb-text-size', settings.text_size + 'px');
-    if (settings.spacing_bottom) root.style.setProperty('--thumb-spacing-bottom', settings.spacing_bottom + 'px');
-    if (settings.menu_width) root.style.setProperty('--thumb-menu-width', settings.menu_width + '%');
+  }
 
-
-    // Update Theme Classes
-   if (settings.theme_selection) {
-      const wrapper = document.querySelector('.thumb-wrapper');
-      if (wrapper) {
-        wrapper.className = `thumb-wrapper theme-${settings.theme_selection}`;
-      }
-    }
-  });
+  // 5. Update Sizing
+  if (settings.icon_size) root.style.setProperty('--thumb-icon-size', settings.icon_size + 'px');
+  if (settings.text_size) root.style.setProperty('--thumb-text-size', settings.text_size + 'px');
+});
 
 // 5. Global Event Listener for Navigation
   document.querySelectorAll('.thumb-link').forEach(link => {
@@ -366,14 +381,14 @@
       "default": "#ffffff"
     },
     {
-      "type": "range",
-      "id": "bg_opacity",
-      "min": 0,
-      "max": 100,
-      "step": 5,
-      "unit": "%",
-      "label": "Background Opacity",
-      "default": 90
+    "type": "range",
+    "id": "nav_opacity",
+    "min": 0,
+    "max": 100,
+    "step": 5,
+    "unit": "%",
+    "label": "Nav Opacity",
+    "default": 90
     },
     {
       "type": "color",
