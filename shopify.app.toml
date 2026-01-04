@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "e71907ca8287432328a4af60113ea61a"
-name = "Mobile first"
+name = "Thumb-Zone Nav: Mobile Bar"
 application_url = "https://navextensions.onrender.com"
 embedded = true
 
