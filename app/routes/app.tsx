@@ -22,11 +22,11 @@ export default function App() {
         <NavMenu>
           <Link to="/app" rel="home">Home</Link>
           
-          {/* NESTED MENU: Notice how the Link wraps around the other Link */}
-          <Link to="/app/welcome">
-            Welcome
-            <Link to="/app/instruction">How to use</Link>
-          </Link>
+          {/* SEPARATE LINK 1 */}
+          <Link to="/app/welcome">Welcome</Link>
+          
+          {/* SEPARATE LINK 2 - No longer inside 'Welcome' */}
+          <Link to="/app/instruction">How to use</Link>
 
         </NavMenu>
         <Outlet />
